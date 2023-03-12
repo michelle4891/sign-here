@@ -1,10 +1,17 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import './App.css'
+import pdfjsLib from 'pdfjs-dist';
 
 function App() {
   const [count, setCount] = useState(0)
-
+  // const fileInput = document.getElementById('file-input');
+  // const file = fileInput.files[0];
+  const handleSubmit = (e)=>{
+    e.preventDefault()
+    console.log(e.target.input.files[0])
+    console.log("submitted")
+  }
   return (
     <div className="App">
       <div>
@@ -17,9 +24,11 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        <form onSubmit={handleSubmit}>
+        <input name = "input" type="file" className="file-input w-full max-w-xs" />
+        <button type = "submit" className='btn'>Submit</button>
+        </form>
+          
         <p>
           Edit <code>src/App.jsx</code> and save to test HMR
         </p>
