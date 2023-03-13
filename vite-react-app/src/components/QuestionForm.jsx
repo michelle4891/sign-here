@@ -40,7 +40,12 @@ export default class QuestionForm extends React.Component {
                         <form onSubmit={this.handleSubmit} className="w-full">
                             <input type="text" placeholder="Ask a question" className="bg-base-100 input input-bordered w-full" value={this.state.value} onChange={this.handleChange.bind(this)} />
                         </form>
-                        <p className="text-xs">Not sure where to start?</p>
+                        <p className="mt-3 text-xs">Not sure where to start?</p>
+                        <div className="flex gap-4">
+                            <button className="normal-case btn btn-secondary btn-xs">What legal risks are there?</button>
+                            <button className="normal-case btn btn-secondary btn-xs">Who is this contract for?</button>
+                            <button className="normal-case btn btn-secondary btn-xs">When is the start date?</button>
+                        </div>
                     </div>
                 </div>
             </>

@@ -13,7 +13,7 @@ function App() {
     console.log("submitted");
   };
   return (
-    <div className="w-screen h-screen bg-primary">
+    <div className="w-screen h-screen bg-base-100">
       <div className="flex justify-center items-center flex-col">
         <div className="card">
           <form onSubmit={handleSubmit}>
