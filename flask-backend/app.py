@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_cors import CORS
 from flask import jsonify
-from flask import request, Response
+from flask import request, Response, json
 import cohere
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -49,7 +49,27 @@ def home():
     # }
     return operation_info.status
 
-@app.route("/question", methods = ['POST'])
-def get_question():
-    question = request.get_json()
-    print(question)
+@app.route("/question", methods = ['GET', 'POST'])
+def question_to_answer():
+    if request.method == 'POST':
+        
+        question = request.form.get('question')
+
+        co = cohere.Client(os.environ.get("COHERE_KEY"))
+        qdrant_client = QdrantClient(
+        "https://a370cbc5-fa9c-4dad-a685-0b9f34344d80.us-east-1-0.aws.cloud.qdrant.io", 
+        api_key= os.environ.get("QDRANT_KEY"),
+        )
+        points = []
+
+        embeds = co.embed(texts=[question], model = 'large', truncate= 'START').embeddings
+        vectors = [float(x) for x in embeds[0]]
+        points.append(PointStruct(id=1, vector=vectors, payload={"text": question})) 
+        operation_info = qdrant_client.upsert(
+            collection_name="EmbededChunks",
+            wait=True,
+            points=points
+        )
+
+        return operation_info.status
+
