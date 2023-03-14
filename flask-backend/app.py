@@ -49,6 +49,20 @@ def home():
     # }
     return operation_info.status
 
+def build_prompt(question, chunk):
+    prompt = f"""You are asked the following question: '{question}'
+    You've selected the most relevant information from the document to use as source for your answer.
+    Below is the information:""".strip()
+
+    info = ""
+
+    for c in chunk:
+        info += f"\n{c}"
+
+    prompt += info
+
+    return prompt
+
 @app.route("/question", methods = ['GET', 'POST'])
 def question_to_answer():
     if request.method == 'POST':
@@ -60,16 +74,22 @@ def question_to_answer():
         "https://a370cbc5-fa9c-4dad-a685-0b9f34344d80.us-east-1-0.aws.cloud.qdrant.io", 
         api_key= os.environ.get("QDRANT_KEY"),
         )
-        points = []
 
-        embeds = co.embed(texts=[question], model = 'large', truncate= 'START').embeddings
-        vectors = [float(x) for x in embeds[0]]
-        points.append(PointStruct(id=1, vector=vectors, payload={"text": question})) 
-        operation_info = qdrant_client.upsert(
+        vectorized_question = float(co.embed(texts=[question], model = 'large', truncate= 'START').embeddings)
+
+        res = qdrant_client.search(
             collection_name="EmbededChunks",
-            wait=True,
-            points=points
+            query_vector=vectorized_question,
+            append_payload=True,
+            limit=10
+        )
+        
+        chunk = res['result']
+
+        prompt = build_prompt(question, chunk)
+        answer = co.generate(
+            prompt=prompt,
         )
 
-        return operation_info.status
+        return answer
 
