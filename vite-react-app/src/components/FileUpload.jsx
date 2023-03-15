@@ -17,7 +17,7 @@ function FileUpload(file){
 
     function ab2str(buf) {
         // console.log(String.fromCharCode.apply(null, new Uint8Array(buf)))
-        const text = new TextEncoder().encode(buf);
+        const text = new TextDecoder().decode(buf);
         console.log(text)
       }
 }
