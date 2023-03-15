@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-export default class AnswerBox extends React.Component {
-    render() {
+export default function  AnswerBox (){
+    
         return(
             <>
             <div className="card">
@@ -9,5 +9,4 @@ export default class AnswerBox extends React.Component {
             </div>
             </>
         )
-    }
 }

@@ -1,55 +1,46 @@
 import React, { useState } from "react";
-import AnswerBox from "./AnswerBox";
 
-export default class QuestionForm extends React.Component {
+export default function QuestionForm(){
+    const [clicked, setClicked] = useState(false)
+    const [value, setValue] = useState("")
+    const [ans, setAns] = useState("")
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            value: "",
-            clicked: false
-        }
-
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
+    const handleChange = (e) =>{
+        e.preventDefault()
+        console.log(e.target.value)
+        setValue(e.target.value)
     }
 
-    handleChange(event) {
-        this.setState({ value: event.target.value });
-    }
-
-    handleSubmit = e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        var value = this.state.value;
+        
         if (value != "") {
-            this.setState({clicked: true});
-        }
-        else {
-            this.setState({clicked: false});
+            setClicked(true)
         }
         
-        console.log(this.state.clicked)
 
-        const req = {
+        const res = await fetch('http://127.0.0.1:8000/question', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question : value})
-        };
+            body: JSON.stringify({question:value})
+        })
+        .then(function(response) {
+            
+            return response.json();
+        }).then(function(data) {
+            // `data` is the parsed version of the JSON returned from the above endpoint.
+            setAns(data['answer']);  // { "userId": 1, "id": 1, "title": "...", "body": "..." }
+          });
 
-        // const res = fetch('http://', req)
-        // if (res.ok) {
-        //     console.log('sent')
-        // }
+       
+        //console.log(res.body.JSON())
     };
-
-    render() {
         return (
             <>
                 <div className="card w-1/2 bg-primary text-neutral">
                     <div className="card-body">
-                        <form onSubmit={this.handleSubmit} className="w-full">
-                            <input type="text" placeholder="Ask a question" className="bg-base-100 input input-bordered w-full" value={this.state.value} onChange={this.handleChange} />
+                        <form  className="w-full" onSubmit={ handleSubmit}>
+                            <input type="text" name = "text" placeholder="Ask a question" className="bg-base-100 input input-bordered w-full" value={value} onChange={handleChange} />
                         </form>
                         <p className="mt-3 text-xs">Not sure where to start?</p>
                         <div className="flex gap-4">
@@ -58,11 +49,17 @@ export default class QuestionForm extends React.Component {
                             <button className="normal-case btn btn-secondary btn-xs">When is the start date?</button>
                         </div>
                         {
-                            this.state.clicked && <AnswerBox/>
+                            clicked &&(
+                                <>
+                                <div>
+                                    <p>{ans}</p>
+                                </div>
+                                </>
+                            )
                         }
                     </div>
                 </div>
             </>
         );
-    }
+    
 }

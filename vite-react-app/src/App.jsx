@@ -27,7 +27,6 @@ function App() {
             </button>
           </form>
         </div>
-
         <QuestionForm />
       </div>
     </div>
