@@ -1,17 +1,13 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import './App.css'
-import pdfjsLib from 'pdfjs-dist';
+import FileUpload from './components/FileUpload.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
-  // const fileInput = document.getElementById('file-input');
-  // const file = fileInput.files[0];
   const handleSubmit = (e)=>{
     e.preventDefault()
-    console.log(e.target.input.files[0])
-    console.log("submitted")
-  }
+    FileUpload(e.target.input.files[0]);
+  };
   return (
     <div className="App">
       <div>
@@ -22,7 +18,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+      <h1>sign:here</h1>
       <div className="card">
         <form onSubmit={handleSubmit}>
         <input name = "input" type="file" className="file-input w-full max-w-xs" />
