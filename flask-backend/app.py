@@ -3,6 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask import jsonify
 from flask import request, Response, json
+
 import cohere
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -101,4 +102,4 @@ def question_to_answer():
         print(answer[0])
         
         return jsonify({"answer" : answer[0]})
-        
+   
