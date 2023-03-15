@@ -2,7 +2,8 @@ import os
 from flask import Flask
 from flask_cors import CORS
 from flask import jsonify
-from flask import request, Response
+from flask import request, Response, json
+
 import cohere
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -48,3 +49,57 @@ def home():
     #     "Status": operation_info.status
     # }
     return operation_info.status
+
+def build_prompt(question, chunk):
+    # prompt = f"""You are asked the following question: '{question}'
+    # You've selected the most relevant information from the document to use as source for your answer.
+    # Below is the information:""".strip()
+    prompt = "Only answer the question and nothing more using the context.\nContext:\n"
+
+    info = ""
+
+    for c in chunk:
+        info += f"--- \n{c}\n---"
+
+    prompt += info
+    prompt += "\nQuestion: " + question + "\n---\n" + "Answer: "
+    print(prompt)
+    return prompt
+
+@app.route("/question", methods = ['GET', 'POST'])
+def question_to_answer():
+    if request.method == 'POST':
+        
+        data = request.get_json()
+        question = data['question']
+
+        co = cohere.Client(os.environ.get("COHERE_KEY"))
+        qdrant_client = QdrantClient(
+        "https://a370cbc5-fa9c-4dad-a685-0b9f34344d80.us-east-1-0.aws.cloud.qdrant.io", 
+        api_key= os.environ.get("QDRANT_KEY"),
+        )
+
+        embed = co.embed(texts=[question], model = 'large', truncate= 'START').embeddings
+        vectorized_question =[float(x) for x in embed[0]]
+
+        res = qdrant_client.search(
+            collection_name="EmbededChunks",
+            query_vector=vectorized_question,
+            append_payload=True,
+            limit=10
+        )
+        
+        chunk = []
+        for r in res:
+            chunk.append(r.payload['text'])
+    
+        prompt = build_prompt(question, chunk)
+        answer = co.generate(
+            prompt=prompt,
+            max_tokens=90
+        )
+
+        print(answer[0])
+        
+        return jsonify({"answer" : answer[0]})
+   
