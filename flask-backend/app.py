@@ -50,24 +50,27 @@ def home():
     return operation_info.status
 
 def build_prompt(question, chunk):
-    prompt = f"""You are asked the following question: '{question}'
-    You've selected the most relevant information from the document to use as source for your answer.
-    Below is the information:""".strip()
+    # prompt = f"""You are asked the following question: '{question}'
+    # You've selected the most relevant information from the document to use as source for your answer.
+    # Below is the information:""".strip()
+    prompt = "Only answer the question and nothing more using the context.\nContext:\n"
 
     info = ""
 
     for c in chunk:
-        info += f"\n{c}"
+        info += f"--- \n{c}\n---"
 
     prompt += info
-
+    prompt += "\nQuestion: " + question + "\n---\n" + "Answer: "
+    print(prompt)
     return prompt
 
 @app.route("/question", methods = ['GET', 'POST'])
 def question_to_answer():
     if request.method == 'POST':
         
-        question = request.form.get('question')
+        data = request.get_json()
+        question = data['question']
 
         co = cohere.Client(os.environ.get("COHERE_KEY"))
         qdrant_client = QdrantClient(
@@ -75,7 +78,8 @@ def question_to_answer():
         api_key= os.environ.get("QDRANT_KEY"),
         )
 
-        vectorized_question = float(co.embed(texts=[question], model = 'large', truncate= 'START').embeddings)
+        embed = co.embed(texts=[question], model = 'large', truncate= 'START').embeddings
+        vectorized_question =[float(x) for x in embed[0]]
 
         res = qdrant_client.search(
             collection_name="EmbededChunks",
@@ -84,12 +88,17 @@ def question_to_answer():
             limit=10
         )
         
-        chunk = res['result']
-
+        chunk = []
+        for r in res:
+            chunk.append(r.payload['text'])
+    
         prompt = build_prompt(question, chunk)
         answer = co.generate(
             prompt=prompt,
+            max_tokens=90
         )
 
-        return answer
-
+        print(answer[0])
+        
+        return jsonify({"answer" : answer[0]})
+        
